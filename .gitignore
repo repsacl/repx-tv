@@ -1,0 +1,25 @@
+# Gradle / Android Studio
+.gradle/
+.kotlin/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# macOS
+.DS_Store
+
+# Your own wallpapers and fonts stay on your machine; only the sample files are shared
+app/src/main/assets/wallpapers/*
+!app/src/main/assets/wallpapers/sample-*
+app/src/main/assets/fonts/*
+!app/src/main/assets/fonts/.gitkeep
+
+# Old Norwegian copies of the code from before the translation
+gammelt-design/
+norsk-backup/
