@@ -95,6 +95,16 @@
     <string name="never">Never</string>
     <string name="ss_off_after">Turn off TV after</string>
 
+    <string name="language">Language</string>
+    <string name="lang_system">Follow the TV</string>
+    <string name="lang_english">English</string>
+    <string name="lang_norwegian">Norsk</string>
+
+    <string name="clock_format">Time format</string>
+    <string name="format_system">Follow the TV</string>
+    <string name="format_24">24-hour (18:30)</string>
+    <string name="format_12">12-hour (6:30)</string>
+
     <plurals name="seconds">
         <item quantity="one">%d second</item>
         <item quantity="other">%d seconds</item>

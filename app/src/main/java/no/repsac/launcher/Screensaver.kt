@@ -181,6 +181,8 @@ class ScreensaverView(context: Context) : FrameLayout(context) {
 /** The system screensaver (an Android «Dream»). Turned on from Settings → Screensaver in the launcher. */
 class Screensaver : DreamService() {
 
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Language.wrap(newBase))
+
     private var view: ScreensaverView? = null
 
     override fun onAttachedToWindow() {
@@ -203,6 +205,8 @@ class Screensaver : DreamService() {
 
 /** Preview from the settings. Press any button to go back. */
 class ScreensaverPreview : Activity() {
+
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Language.wrap(newBase))
 
     private lateinit var view: ScreensaverView
 

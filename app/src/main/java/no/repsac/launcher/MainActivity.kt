@@ -121,6 +121,9 @@ class MainActivity : Activity() {
 
     // ---------------------------------------------------------------- lifecycle
 
+    /** Uses the language chosen under Settings → Text */
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Language.wrap(newBase))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -903,7 +906,18 @@ class MainActivity : Activity() {
     private fun showTextSettings() {
         val here = ::showTextSettings
         val fonts = Fonts.all(this)
+        val languages = Language.OPTIONS
+        val lang = languages.find { it.key == prefs.appLanguage } ?: languages.first()
         panel(getString(R.string.section_text), listOf(
+            Choice(label(R.string.language, getString(lang.label))) {
+                pick(getString(R.string.language), languages.map { getString(it.label) }, languages.indexOf(lang), here,
+                    preview = false) { i ->
+                    if (languages[i].key != prefs.appLanguage) {
+                        prefs.appLanguage = languages[i].key
+                        recreate()   // build the screen again in the new language
+                    }
+                }
+            },
             Choice(label(R.string.app_font, Fonts.name(this, prefs.appFont))) {
                 pick(getString(R.string.app_font), fonts.map { it.name }, fonts.indexOfFirst { it.key == prefs.appFont }, here,
                     fonts = fonts.map { Fonts.typeface(this, it.key) }) { i ->
@@ -917,6 +931,8 @@ class MainActivity : Activity() {
         val here = ::showClockSettings
         val fonts = Fonts.all(this)
         val styles = listOf(getString(R.string.clock_plain), getString(R.string.clock_glass))
+        val formatKeys = listOf("system", "24", "12")
+        val formats = listOf(getString(R.string.format_system), getString(R.string.format_24), getString(R.string.format_12))
         panel(getString(R.string.section_clock), listOf(
             Choice(label(R.string.font, Fonts.name(this, prefs.clockFont))) {
                 pick(getString(R.string.font), fonts.map { it.name }, fonts.indexOfFirst { it.key == prefs.clockFont }, here,
@@ -927,6 +943,11 @@ class MainActivity : Activity() {
             Choice(label(R.string.style, styles[if (prefs.clockGlass) 1 else 0])) {
                 pick(getString(R.string.style), styles, if (prefs.clockGlass) 1 else 0, here) { i ->
                     prefs.clockGlass = i == 1
+                }
+            },
+            Choice(label(R.string.clock_format, formats[formatKeys.indexOf(prefs.clockFormat).coerceAtLeast(0)])) {
+                pick(getString(R.string.clock_format), formats, formatKeys.indexOf(prefs.clockFormat), here) { i ->
+                    prefs.clockFormat = formatKeys[i]
                 }
             },
         ), onBack = ::showSettings)
@@ -1021,6 +1042,7 @@ class MainActivity : Activity() {
     private fun applyClockStyle() {
         clock.typeface = Fonts.typeface(this, prefs.clockFont)
         clock.glass = prefs.clockGlass
+        clock.text = dateTime.time(Date())   // show a new 12/24-hour choice right away
     }
 
     // ---------------------------------------------------------------- screensaver (system settings)

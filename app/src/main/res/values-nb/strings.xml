@@ -94,6 +94,16 @@
     <string name="never">Aldri</string>
     <string name="ss_off_after">Slå av TV-en etter</string>
 
+    <string name="language">Språk</string>
+    <string name="lang_system">Følg TV-en</string>
+    <string name="lang_english">English</string>
+    <string name="lang_norwegian">Norsk</string>
+
+    <string name="clock_format">Tidsformat</string>
+    <string name="format_system">Følg TV-en</string>
+    <string name="format_24">24 timer (18:30)</string>
+    <string name="format_12">12 timer (6:30)</string>
+
     <plurals name="seconds">
         <item quantity="one">%d sekund</item>
         <item quantity="other">%d sekunder</item>

@@ -15,7 +15,7 @@ Google's own home screen is heavy on recommendations and ads and gets slow on de
 
 - **Your apps in a dock** – a single row that scrolls sideways, with an optional rounded background. Hold **OK** on an app to move it, remove it or open app info.
 - **Glass row** – All apps, Play Store, Wallpaper, Settings and Add app, with simple line icons.
-- **Big clock and date** – choose any font, and optionally a **frosted glass** look where the wallpaper shows through the digits.
+- **Big clock and date** – 12- or 24-hour, choose any font, and optionally a **frosted glass** look where the wallpaper shows through the digits.
 - **Your own wallpapers** – drop pictures into `assets/wallpapers/` (plain black if there are none).
 - **Animated focus outline** – Running light, Glow, Pulsing, Solid or Off, drawn just outside the card so it's visible on white banners too.
 - **Screensaver** – a slideshow of your pictures with crossfade, slow zoom and the clock.

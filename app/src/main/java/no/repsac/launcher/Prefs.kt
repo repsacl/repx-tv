@@ -53,6 +53,16 @@ class Prefs(context: Context) {
         get() = prefs.getString("app_font", null) ?: Config.APP_FONT
         set(value) = prefs.edit().putString("app_font", value).apply()
 
+    /** The launcher's language: «system» (follow the TV), «en» or «nb». Read by Language.wrap. */
+    var appLanguage: String
+        get() = prefs.getString("app_language", "system") ?: "system"
+        set(value) = prefs.edit().putString("app_language", value).commit().let { }
+
+    /** Clock format: «system» (follow the TV), «24» or «12» */
+    var clockFormat: String
+        get() = prefs.getString("clock_format", "system") ?: "system"
+        set(value) = prefs.edit().putString("clock_format", value).apply()
+
     /** Frosted glass effect on the clock */
     var clockGlass: Boolean
         get() = prefs.getBoolean("clock_glass", Config.CLOCK_GLASS)
