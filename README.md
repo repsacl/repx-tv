@@ -4,7 +4,12 @@ A calm, fast, ad-free home screen for **Chromecast with Google TV** (and other G
 
 Google's own home screen is heavy on recommendations and ads and gets slow on devices with 2 GB of RAM. Repsac Launcher replaces it with your apps, a big clock and your own wallpapers — nothing else.
 
-> Add a screenshot here: `docs/home-screen.png`
+![Repsac Launcher home screen](docs/home-1.png)
+
+<p>
+  <img src="docs/home-2.png" width="49%" alt="Home screen with a mountain wallpaper">
+  <img src="docs/home-3.png" width="49%" alt="Home screen with a green city wallpaper">
+</p>
 
 ## Features
 
@@ -17,7 +22,7 @@ Google's own home screen is heavy on recommendations and ads and gets slow on de
 - **Now playing from Spotify** – what you're listening to on any of your devices, with album art and progress, on the home screen and the screensaver.
 - **Quick icons** – Bluetooth (Remotes & Accessories), Wi-Fi and TV settings in the top right corner.
 - **Settings on the TV** – card size, row backgrounds, outline style and distance, fonts, clock style and screensaver, all previewed live as you scroll.
-- **English and Norwegian** – follows the TV's language. Add a `values-xx/strings.xml` to translate.
+- **English and Norwegian** – follows the TV's language, or pick one under Settings → Text → Language. Add a `values-xx/strings.xml` to translate.
 - **Light on resources** – the app list is only reloaded when apps change, banners are scaled down once, pictures are decoded off the main thread, and animations stop when the home screen isn't visible.
 
 ## What you need
