@@ -111,6 +111,10 @@ class MainActivity : Activity() {
             if (visible) buildTiles()
         }
     }
+    // «Now playing» from Spotify, in the top right corner under the icons
+    private lateinit var nowPlaying: NowPlayingView
+    private lateinit var nowPlayingPoller: NowPlayingPoller
+
     private var lastFocus: String? = null
     private var firstTile: View? = null
     private var scale = 1f
@@ -132,7 +136,8 @@ class MainActivity : Activity() {
 
         buildClock()
         buildTopIcons()
-        showWallpaper(currentWallpaper())
+        buildNowPlaying()
+        currentWallpaper()?.let { showWallpaper(it) }
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
@@ -156,9 +161,8 @@ class MainActivity : Activity() {
         // Only rebuild the cards if something changed; otherwise everything (and the focus) stays put
         if (appsStale || tiles.isEmpty()) buildTiles() else activeOutline?.show()
         updateClock.run()
-        if (Config.ROTATE_WALLPAPER_MINUTES > 0) {
-            handler.postDelayed(rotateWallpaper, Config.ROTATE_WALLPAPER_MINUTES * 60_000L)
-        }
+        startNowPlaying()
+        scheduleWallpaperChange()
     }
 
     override fun onPause() {
@@ -166,6 +170,7 @@ class MainActivity : Activity() {
         visible = false
         handler.removeCallbacksAndMessages(null)
         activeOutline?.stop()   // no animation while an app is showing
+        nowPlayingPoller.stop()
     }
 
     /** Home pressed while already on the home screen: back to the top and the first app */
@@ -227,6 +232,26 @@ class MainActivity : Activity() {
         }
     }
 
+    /** The «now playing» card, right-aligned with the cards below and just under the top icons */
+    private fun buildNowPlaying() {
+        nowPlaying = NowPlayingView(this, scale, regular)
+        nowPlayingPoller = NowPlayingPoller(this) { np, art -> nowPlaying.show(np, art) }
+        content.addView(nowPlaying, FrameLayout.LayoutParams(WRAP, WRAP).apply {
+            gravity = Gravity.END or Gravity.TOP
+            rightMargin = px(MARGIN)
+            topMargin = px(176)
+        })
+    }
+
+    private fun startNowPlaying() {
+        if (prefs.nowPlayingHome && Spotify.isConnected(prefs)) {
+            nowPlayingPoller.start()
+        } else {
+            nowPlayingPoller.stop()
+            nowPlaying.show(null, null)
+        }
+    }
+
     private val updateClock = object : Runnable {
         override fun run() {
             val now = Date()
@@ -239,25 +264,39 @@ class MainActivity : Activity() {
 
     // ---------------------------------------------------------------- wallpaper
 
-    private val rotateWallpaper = object : Runnable {
-        override fun run() {
-            val keys = wallpaperChoices().map { it.first }
-            val next = keys[(keys.indexOf(currentWallpaper()) + 1) % keys.size]
+    /** Changes to a random other picture, like the screensaver, and starts the timer again */
+    private val rotateWallpaper = Runnable {
+        val others = wallpaperChoices().map { it.first }.filter { it != currentWallpaper() }
+        if (others.isNotEmpty()) {
+            val next = others.random()
             prefs.wallpaper = next
+            prefs.wallpaperChangedAt = System.currentTimeMillis()
             showWallpaper(next, animate = true)
-            handler.postDelayed(this, Config.ROTATE_WALLPAPER_MINUTES * 60_000L)
         }
+        scheduleWallpaperChange()
     }
 
-    /** All wallpapers: (key, name). Your own pictures first, then the colors. */
-    private fun wallpaperChoices(): List<Pair<String, String>> =
-        Images.files(this).map { "image:$it" to it.substringBeforeLast('.') } +
-            ColorWallpapers.ALL.map { "color:${it.id}" to getString(it.name) }
+    /**
+     * Sets the timer for the next wallpaper change. Counts from the last change, so it also
+     * changes while you're in an app: if the time has passed, it changes as soon as you're back.
+     */
+    private fun scheduleWallpaperChange() {
+        handler.removeCallbacks(rotateWallpaper)
+        val minutes = prefs.wallpaperChangeMinutes
+        if (minutes <= 0 || wallpaperChoices().size < 2) return
+        val elapsed = System.currentTimeMillis() - prefs.wallpaperChangedAt
+        handler.postDelayed(rotateWallpaper, (minutes * 60_000L - elapsed).coerceAtLeast(0))
+    }
 
-    private fun currentWallpaper(): String {
+    /** All wallpapers: (key, name), from your pictures in assets/wallpapers/ */
+    private fun wallpaperChoices(): List<Pair<String, String>> =
+        Images.files(this).map { "image:$it" to it.substringBeforeLast('.') }
+
+    /** null = no pictures added: the background stays plain black */
+    private fun currentWallpaper(): String? {
         val keys = wallpaperChoices().map { it.first }
         val saved = prefs.wallpaper
-        return if (saved != null && saved in keys) saved else keys.first()
+        return if (saved != null && saved in keys) saved else keys.firstOrNull()
     }
 
     private fun showWallpaper(key: String, animate: Boolean = false) {
@@ -294,30 +333,8 @@ class MainActivity : Activity() {
     }
 
     /** Small preview icon for the wallpaper menu */
-    private fun wallpaperIcon(key: String): Drawable? {
-        if (key.startsWith("image:")) {
-            return thumbnails.getOrPut(key) {
-                Images.load(this, key.removePrefix("image:"), 96)?.let { BitmapDrawable(resources, it) }
-            }
-        }
-        val c = ColorWallpapers.find(key.removePrefix("color:"))?.colors ?: return null
-        return GradientDrawable(
-            GradientDrawable.Orientation.TL_BR, intArrayOf(glowDot(c[3], c[0]), c[1], glowDot(c[4], c[0]))
-        ).apply {
-            shape = GradientDrawable.OVAL
-            setStroke(max(1, px(2)), 0x26FFFFFF)
-        }
-    }
-
-    /** The glow color made solid over the base color, three times as strong, so it shows in a small dot */
-    private fun glowDot(glow: Int, base: Int): Int {
-        val a = minOf(1f, 3 * (glow ushr 24) / 255f)
-        fun channel(g: Int, b: Int) = (b + (g - b) * a).roundToInt()
-        return Color.rgb(
-            channel(Color.red(glow), Color.red(base)),
-            channel(Color.green(glow), Color.green(base)),
-            channel(Color.blue(glow), Color.blue(base)),
-        )
+    private fun wallpaperIcon(key: String): Drawable? = thumbnails.getOrPut(key) {
+        Images.load(this, key.removePrefix("image:"), 96)?.let { BitmapDrawable(resources, it) }
     }
 
     // ---------------------------------------------------------------- apps
@@ -784,13 +801,62 @@ class MainActivity : Activity() {
             Choice(getString(R.string.section_text), LineIcon(LineIcon.TEXT)) { showTextSettings() },
             Choice(getString(R.string.section_clock), LineIcon(LineIcon.CLOCK)) { showClockSettings() },
             Choice(getString(R.string.section_screensaver), LineIcon(LineIcon.MOON)) { showScreensaverSettings() },
-            Choice(getString(R.string.wallpaper), LineIcon(LineIcon.PICTURE)) { showWallpaperMenu() },
+            Choice(getString(R.string.section_spotify), LineIcon(LineIcon.MUSIC)) { showSpotifySettings() },
+            Choice(getString(R.string.wallpaper), LineIcon(LineIcon.PICTURE)) { showWallpaperSettings() },
             Choice(getString(R.string.reset_appearance), LineIcon(LineIcon.SETTINGS)) {
                 prefs.resetAppearance()
                 refreshAppearance()
                 showSettings()
             },
         ))
+    }
+
+    /** Minutes between wallpaper changes (0 = keep the same picture) */
+    private val wallpaperIntervals = listOf(0, 5, 15, 30, 60, 180, 720, 1440)
+
+    private fun intervalName(m: Int) = if (m <= 0) getString(R.string.wp_never) else getString(R.string.wp_every, minutes(m))
+
+    /** Wallpaper: which picture, and whether it changes by itself */
+    private fun showWallpaperSettings() {
+        val here = ::showWallpaperSettings
+        val current = currentWallpaper()?.removePrefix("image:")?.substringBeforeLast('.') ?: getString(R.string.none)
+        panel(getString(R.string.wallpaper), listOf(
+            Choice(label(R.string.wp_picture, current)) { showWallpaperMenu(back = here) },
+            Choice(label(R.string.wp_change, intervalName(prefs.wallpaperChangeMinutes))) {
+                pick(getString(R.string.wp_change), wallpaperIntervals.map { intervalName(it) },
+                    wallpaperIntervals.indexOf(prefs.wallpaperChangeMinutes), here, preview = false) { i ->
+                    prefs.wallpaperChangeMinutes = wallpaperIntervals[i]
+                    prefs.wallpaperChangedAt = System.currentTimeMillis()
+                    scheduleWallpaperChange()
+                }
+            },
+        ), onBack = ::showSettings)
+    }
+
+    /** Spotify «now playing»: connection status and where to show it */
+    private fun showSpotifySettings() {
+        val here = ::showSpotifySettings
+        val connected = Spotify.isConnected(prefs)
+        val choices = mutableListOf(
+            Choice(getString(if (connected) R.string.spotify_connected else R.string.spotify_not_connected)) {
+                if (!connected) Toast.makeText(this, R.string.spotify_howto, Toast.LENGTH_LONG).show()
+                showSpotifySettings()
+            },
+            Choice(label(R.string.np_home, onOff(prefs.nowPlayingHome))) {
+                pick(getString(R.string.np_home), listOf(onOff(true), onOff(false)), if (prefs.nowPlayingHome) 0 else 1, here,
+                    preview = false) { i -> prefs.nowPlayingHome = i == 0 }
+            },
+            Choice(label(R.string.np_screensaver, onOff(prefs.nowPlayingScreensaver))) {
+                pick(getString(R.string.np_screensaver), listOf(onOff(true), onOff(false)),
+                    if (prefs.nowPlayingScreensaver) 0 else 1, here, preview = false) { i -> prefs.nowPlayingScreensaver = i == 0 }
+            },
+        )
+        if (connected) choices += Choice(getString(R.string.spotify_disconnect)) {
+            Spotify.disconnect(prefs)
+            startNowPlaying()
+            showSpotifySettings()
+        }
+        panel(getString(R.string.section_spotify), choices, onBack = ::showSettings)
     }
 
     private fun showTileSettings() {
@@ -878,6 +944,10 @@ class MainActivity : Activity() {
                 pick(getString(R.string.ss_start_after), waitTimes.map { minutes(it) }, waitTimes.indexOf(wait ?: -1), here,
                     preview = false) { i -> setScreensaverWait(waitTimes[i]) }
             },
+            Choice(label(R.string.ss_off_after, screenOffAfter()?.let { offName(it) } ?: getString(R.string.unknown))) {
+                pick(getString(R.string.ss_off_after), offTimes.map { offName(it) }, offTimes.indexOf(screenOffAfter() ?: -3), here,
+                    preview = false) { i -> setScreenOffAfter(offTimes[i]) }
+            },
             Choice(label(R.string.ss_interval, seconds(prefs.screensaverSeconds))) {
                 pick(getString(R.string.ss_interval), pictureTimes.map { seconds(it) },
                     pictureTimes.indexOf(prefs.screensaverSeconds), here) { i ->
@@ -934,6 +1004,7 @@ class MainActivity : Activity() {
         applyAppFont()
         applyClockStyle()
         buildTiles()
+        startNowPlaying()
     }
 
     private fun loadAppFont() {
@@ -944,6 +1015,7 @@ class MainActivity : Activity() {
     private fun applyAppFont() {
         loadAppFont()
         date.typeface = regular
+        nowPlaying.setFont(regular)
     }
 
     private fun applyClockStyle() {
@@ -1002,6 +1074,45 @@ class MainActivity : Activity() {
             return
         }
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, minutes * 60_000)
+        // The turn-off time counts from when the screensaver starts, so move it along
+        if (prefs.screenOffAfter >= 0) setScreenOffAfter(prefs.screenOffAfter)
+    }
+
+    /** How long the screensaver runs before the TV turns off: -1 = never */
+    private val offTimes = listOf(-1, 15, 30, 60, 120, 240)
+
+    private fun offName(m: Int) = if (m < 0) getString(R.string.never) else minutes(m)
+
+    /**
+     * Minutes the screensaver runs before the TV turns off (-1 = never), read from the system.
+     * Android counts «sleep_timeout» from the last button press, and the screensaver starts at
+     * «screen_off_timeout», so the difference is how long the screensaver is shown.
+     */
+    private fun screenOffAfter(): Int? = try {
+        val sleep = Settings.Secure.getInt(contentResolver, "sleep_timeout", -1)
+        if (sleep <= 0) -1 else {
+            val wait = Settings.System.getInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
+            ((sleep - wait) / 60_000).coerceAtLeast(0)
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    /**
+     * Turns the Chromecast off after the screensaver has run this many minutes (-1 = never).
+     * With HDMI-CEC on, the TV turns off with it. Needs WRITE_SECURE_SETTINGS (see README).
+     */
+    private fun setScreenOffAfter(minutes: Int) {
+        try {
+            val wait = Settings.System.getInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
+            val sleep = if (minutes < 0) -1 else wait + minutes * 60_000
+            Settings.Secure.putInt(contentResolver, "sleep_timeout", sleep)
+            prefs.screenOffAfter = minutes
+        } catch (e: SecurityException) {
+            Toast.makeText(this, getString(R.string.missing_secure_settings, packageName), Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            toast(R.string.not_available)
+        }
     }
 
     private fun showAllApps() {
@@ -1025,14 +1136,26 @@ class MainActivity : Activity() {
     }
 
     /** The wallpaper menu: the wallpaper changes as you scroll, OK keeps it, Back undoes it */
-    private fun showWallpaperMenu() {
+    private fun showWallpaperMenu(back: (() -> Unit)? = null) {
         val all = wallpaperChoices()
+        if (all.isEmpty()) {
+            Toast.makeText(this, R.string.no_pictures, Toast.LENGTH_LONG).show()
+            return
+        }
         val start = all.indexOfFirst { it.first == currentWallpaper() }.coerceAtLeast(0)
         panel(
             title = getString(R.string.wallpaper),
-            choices = all.map { (key, name) -> Choice(name, wallpaperIcon(key)) { prefs.wallpaper = key } },
+            choices = all.map { (key, name) ->
+                Choice(name, wallpaperIcon(key)) {
+                    prefs.wallpaper = key
+                    prefs.wallpaperChangedAt = System.currentTimeMillis()   // a new picture starts the timer again
+                    scheduleWallpaperChange()
+                    back?.invoke()
+                }
+            },
             start = start,
             preview = { i -> showWallpaper(all[i].first) },
+            onBack = back,
         )
     }
 

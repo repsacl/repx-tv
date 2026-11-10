@@ -3,12 +3,8 @@ package no.repsac.launcher
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 
-/** Your pictures in assets/wallpapers/ and the color wallpapers. Used by both the home screen and the screensaver. */
+/** Your pictures in assets/wallpapers/. Used by both the home screen and the screensaver. */
 object Images {
 
     private val EXTENSIONS = setOf("jpg", "jpeg", "png", "webp")
@@ -39,10 +35,9 @@ object Images {
         null
     }
 
-    /** Full-screen bitmap for a wallpaper key («image:file» or «color:Id») */
+    /** Full-screen bitmap for a wallpaper key («image:file») */
     fun wallpaper(context: Context, key: String): Bitmap? = when {
         key.startsWith("image:") -> load(context, key.removePrefix("image:"), 1920, hardware = true)
-        key.startsWith("color:") -> ColorWallpapers.find(key.removePrefix("color:"))?.let { gradient(context, it.colors) }
         else -> null
     }
 
@@ -53,7 +48,6 @@ object Images {
     fun blurred(context: Context, key: String): Bitmap? = try {
         val source = when {
             key.startsWith("image:") -> load(context, key.removePrefix("image:"), 96)
-            key.startsWith("color:") -> ColorWallpapers.find(key.removePrefix("color:"))?.let { gradient(context, it.colors, 96) }
             else -> null
         }
         source?.let {
@@ -63,37 +57,5 @@ object Images {
         }
     } catch (e: Exception) {
         null
-    }
-
-    /**
-     * Draws a color wallpaper (see ColorWallpapers) once into a screen-sized bitmap.
-     * With width, a small version is drawn instead (regular memory, not graphics memory).
-     */
-    fun gradient(context: Context, c: IntArray, width: Int? = null): Bitmap? {
-        val screenW = context.resources.displayMetrics.widthPixels
-        val screenH = context.resources.displayMetrics.heightPixels
-        val w = width ?: screenW
-        val h = if (width != null) maxOf(1, width * screenH / screenW) else screenH
-        val scale = w / 1920f
-        val base = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(c[0], c[1], c[2]))
-        val top = radial(c[3], 0.08f, -0.12f, 1250 * scale)
-        val bottom = radial(c[4], 1.0f, 1.1f, 1000 * scale)
-        listOf(base, top, bottom).forEach { @Suppress("DEPRECATION") it.setDither(true) }
-        val layers = LayerDrawable(arrayOf<Drawable>(base, top, bottom))
-        return try {
-            val bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-            layers.setBounds(0, 0, w, h)
-            layers.draw(Canvas(bm))
-            if (width != null) bm else bm.copy(Bitmap.Config.HARDWARE, false)?.also { bm.recycle() } ?: bm
-        } catch (e: Throwable) {
-            null
-        }
-    }
-
-    private fun radial(color: Int, cx: Float, cy: Float, r: Float) = GradientDrawable().apply {
-        gradientType = GradientDrawable.RADIAL_GRADIENT
-        colors = intArrayOf(color, color and 0x00FFFFFF)
-        setGradientCenter(cx, cy)
-        gradientRadius = r
     }
 }

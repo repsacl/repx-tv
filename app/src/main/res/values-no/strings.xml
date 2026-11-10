@@ -74,20 +74,25 @@
     <string name="ss_preview">Forhåndsvis skjermsparer</string>
     <string name="missing_secure_settings">Mangler tillatelse. Kjør i Terminal:\nadb shell pm grant %1$s android.permission.WRITE_SECURE_SETTINGS</string>
     <string name="missing_write_settings">Mangler tillatelse. Kjør i Terminal:\nadb shell appops set %1$s WRITE_SETTINGS allow</string>
-    <string name="color_dusk">Skumring</string>
-    <string name="color_midnight">Midnatt</string>
-    <string name="color_plum">Plomme</string>
-    <string name="color_forest">Skog</string>
-    <string name="color_graphite">Grafitt</string>
-    <string name="color_ocean">Hav</string>
-    <string name="color_ember">Glør</string>
-    <string name="color_sunset">Solnedgang</string>
-    <string name="color_lagoon">Lagune</string>
-    <string name="color_aurora">Nordlys</string>
-    <string name="color_coral">Korall</string>
-    <string name="color_iris">Iris</string>
-    <string name="color_meadow">Eng</string>
-    <string name="color_gold">Gull</string>
+    <string name="no_pictures">Legg bilder i app/src/main/assets/wallpapers/ for å bruke dem som bakgrunn</string>
+
+    <string name="section_spotify">Spotify</string>
+    <string name="np_now_playing">Spiller nå</string>
+    <string name="np_playing_on">Spilles på %1$s</string>
+    <string name="np_home">Vis på hjemskjermen</string>
+    <string name="np_screensaver">Vis på skjermspareren</string>
+    <string name="spotify_connected">Koblet til Spotify</string>
+    <string name="spotify_not_connected">Ikke koblet til – slik kobler du til</string>
+    <string name="spotify_howto">Kjør tools/spotify-login.py på datamaskinen for å koble til Spotify-kontoen din (se README)</string>
+    <string name="spotify_disconnect">Koble fra Spotify</string>
+
+    <string name="wp_picture">Bilde</string>
+    <string name="wp_change">Bytt bilde</string>
+    <string name="wp_never">Aldri – behold samme bilde</string>
+    <string name="wp_every">Etter %1$s</string>
+    <string name="none">Ingen</string>
+    <string name="never">Aldri</string>
+    <string name="ss_off_after">Slå av TV-en etter</string>
 
     <plurals name="seconds">
         <item quantity="one">%d sekund</item>

@@ -75,20 +75,25 @@
     <string name="ss_preview">Preview screensaver</string>
     <string name="missing_secure_settings">Missing permission. Run in Terminal:\nadb shell pm grant %1$s android.permission.WRITE_SECURE_SETTINGS</string>
     <string name="missing_write_settings">Missing permission. Run in Terminal:\nadb shell appops set %1$s WRITE_SETTINGS allow</string>
-    <string name="color_dusk">Dusk</string>
-    <string name="color_midnight">Midnight</string>
-    <string name="color_plum">Plum</string>
-    <string name="color_forest">Forest</string>
-    <string name="color_graphite">Graphite</string>
-    <string name="color_ocean">Ocean</string>
-    <string name="color_ember">Ember</string>
-    <string name="color_sunset">Sunset</string>
-    <string name="color_lagoon">Lagoon</string>
-    <string name="color_aurora">Aurora</string>
-    <string name="color_coral">Coral</string>
-    <string name="color_iris">Iris</string>
-    <string name="color_meadow">Meadow</string>
-    <string name="color_gold">Gold</string>
+    <string name="no_pictures">Add pictures to app/src/main/assets/wallpapers/ to use them as wallpaper</string>
+
+    <string name="section_spotify">Spotify</string>
+    <string name="np_now_playing">Now playing</string>
+    <string name="np_playing_on">Playing on %1$s</string>
+    <string name="np_home">Show on home screen</string>
+    <string name="np_screensaver">Show on screensaver</string>
+    <string name="spotify_connected">Connected to Spotify</string>
+    <string name="spotify_not_connected">Not connected – how to connect</string>
+    <string name="spotify_howto">Run tools/spotify-login.py on your computer to connect your Spotify account (see README)</string>
+    <string name="spotify_disconnect">Disconnect Spotify</string>
+
+    <string name="wp_picture">Picture</string>
+    <string name="wp_change">Change picture</string>
+    <string name="wp_never">Never – keep the same picture</string>
+    <string name="wp_every">Every %1$s</string>
+    <string name="none">None</string>
+    <string name="never">Never</string>
+    <string name="ss_off_after">Turn off TV after</string>
 
     <plurals name="seconds">
         <item quantity="one">%d second</item>

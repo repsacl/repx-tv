@@ -23,8 +23,7 @@ SOFTWARE.
 -------------------------------------------------------------------------------
 Third-party notice
 
-The design, the color wallpapers (ColorWallpapers.kt) and the line icons
-(LineIcon.kt) are based on TV Detox, https://github.com/ansub/tv-detox
+The design and the line icons (LineIcon.kt) are based on TV Detox, https://github.com/ansub/tv-detox
 
 MIT License
 

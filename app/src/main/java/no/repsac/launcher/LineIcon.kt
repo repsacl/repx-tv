@@ -34,6 +34,9 @@ class LineIcon(private val ops: IntArray) : Drawable() {
             1, 30, 120, 1, 100, 100, 2)
         /** Moon: used for the screensaver */
         val MOON = intArrayOf(4, 120, 120, 85, 50, 260, 4, 215, 120, 76, 122, 117)
+        /** Music: two beamed notes */
+        val MUSIC = intArrayOf(3, 75, 175, 25, 3, 165, 155, 25, 0, 100, 175, 1, 100, 55, 1, 190, 35, 1, 190, 155,
+            0, 100, 85, 1, 190, 65)
         val PLUS = intArrayOf(0, 120, 50, 1, 120, 190, 0, 50, 120, 1, 190, 120)
         val WIFI = intArrayOf(4, 120, 195, 135, 225, 90, 4, 120, 195, 92, 225, 90, 4, 120, 195, 50, 225, 90,
             3, 120, 195, 4)

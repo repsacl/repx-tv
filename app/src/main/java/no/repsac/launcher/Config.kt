@@ -23,7 +23,7 @@ object Config {
     /** How many cards fit across the screen. More = smaller cards (6 is the original design). */
     const val CARDS_PER_ROW = 6
 
-    /** Change the wallpaper automatically every X minutes. 0 = never. */
+    /** Change to a random wallpaper every X minutes. 0 = never (default; can be changed on the TV) */
     const val ROTATE_WALLPAPER_MINUTES = 0
 
     /** Icons in the top right corner (the gear for TV settings is always shown) */

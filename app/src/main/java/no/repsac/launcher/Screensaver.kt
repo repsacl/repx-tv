@@ -26,7 +26,7 @@ import kotlin.random.Random
 
 /**
  * The screensaver: shows your pictures (assets/wallpapers/) one at a time, with a soft crossfade,
- * slow zoom and the clock in the bottom left. Without pictures of your own, the color wallpapers are used.
+ * slow zoom and the clock in the bottom left. Without pictures of your own, only the clock is shown.
  */
 class ScreensaverView(context: Context) : FrameLayout(context) {
 
@@ -47,8 +47,10 @@ class ScreensaverView(context: Context) : FrameLayout(context) {
     private val date: TextView
     private val clock: GlassText
     private val clockColumn: LinearLayout
+    private val nowPlaying = NowPlayingView(context, scale, Fonts.typeface(context, prefs.appFont))
+    private val nowPlayingPoller = NowPlayingPoller(context) { np, art -> nowPlaying.show(np, art) }
 
-    private var keys: List<String> = emptyList()   // «image:file» or «color:Id»
+    private var keys: List<String> = emptyList()   // «image:file»
     private var index = -1
 
     init {
@@ -76,21 +78,27 @@ class ScreensaverView(context: Context) : FrameLayout(context) {
             leftMargin = px(96)
             bottomMargin = px(80)
         })
+        // What's playing on Spotify, in the bottom right corner
+        addView(nowPlaying, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.END).apply {
+            rightMargin = px(96)
+            bottomMargin = px(80)
+        })
     }
 
     fun start() {
         stop()
         worker = Executors.newSingleThreadExecutor()
-        val pictures = Images.files(context).map { "image:$it" }
-        keys = pictures.ifEmpty { ColorWallpapers.ALL.map { "color:${it.id}" } }
+        keys = Images.files(context).map { "image:$it" }   // no pictures: just the clock on black
         if (prefs.screensaverShuffle) keys = keys.shuffled()
         index = -1
         updateClock.run()
         nextPicture.run()
+        if (prefs.nowPlayingScreensaver) nowPlayingPoller.start()
     }
 
     fun stop() {
         handler.removeCallbacksAndMessages(null)
+        nowPlayingPoller.stop()
         worker?.shutdownNow()
         worker = null
     }
@@ -136,6 +144,7 @@ class ScreensaverView(context: Context) : FrameLayout(context) {
         incoming.scaleY = 1f
         incoming.bringToFront()
         clockColumn.bringToFront()
+        nowPlaying.bringToFront()
 
         val fade = 1500L
         incoming.animate().alpha(1f).setStartDelay(0).setDuration(fade).setInterpolator(DecelerateInterpolator()).start()

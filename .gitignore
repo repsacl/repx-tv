@@ -23,3 +23,6 @@ app/src/main/assets/fonts/*
 # Old Norwegian copies of the code from before the translation
 gammelt-design/
 norsk-backup/
+
+# Python
+__pycache__/

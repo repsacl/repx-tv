@@ -83,7 +83,43 @@ class Prefs(context: Context) {
         get() = prefs.getString("ss_previous", null)
         set(value) = prefs.edit().putString("ss_previous", value).apply()
 
-    /** «image:file.jpg» or «color:Name» */
+    // ----- Spotify «now playing» (the login itself comes from tools/spotify-login.py)
+
+    var spotifyClientId: String?
+        get() = prefs.getString("spotify_client_id", null)
+        set(value) = prefs.edit().putString("spotify_client_id", value).apply()
+
+    var spotifyRefreshToken: String?
+        get() = prefs.getString("spotify_refresh_token", null)
+        set(value) = prefs.edit().putString("spotify_refresh_token", value).apply()
+
+    var nowPlayingHome: Boolean
+        get() = prefs.getBoolean("np_home", true)
+        set(value) = prefs.edit().putBoolean("np_home", value).apply()
+
+    var nowPlayingScreensaver: Boolean
+        get() = prefs.getBoolean("np_screensaver", true)
+        set(value) = prefs.edit().putBoolean("np_screensaver", value).apply()
+
+    /** Change to a random wallpaper every X minutes (0 = keep the same one) */
+    var wallpaperChangeMinutes: Int
+        get() = prefs.getInt("wp_change_minutes", Config.ROTATE_WALLPAPER_MINUTES)
+        set(value) = prefs.edit().putInt("wp_change_minutes", value).apply()
+
+    /** When the wallpaper last changed (so the timer keeps counting while an app is open) */
+    var wallpaperChangedAt: Long
+        get() = prefs.getLong("wp_changed_at", 0L)
+        set(value) = prefs.edit().putLong("wp_changed_at", value).apply()
+
+    /**
+     * Minutes the screensaver runs before the TV turns off. -1 = never, -2 = not set here
+     * (the TV's own setting is left alone).
+     */
+    var screenOffAfter: Int
+        get() = prefs.getInt("ss_off_after", -2)
+        set(value) = prefs.edit().putInt("ss_off_after", value).apply()
+
+    /** «image:file.jpg» */
     var wallpaper: String?
         get() = prefs.getString("wallpaper", null)
         set(value) = prefs.edit().putString("wallpaper", value).apply()
@@ -135,7 +171,7 @@ class Prefs(context: Context) {
             when {
                 s == null -> null
                 s.startsWith("bilde:") -> "image:" + s.removePrefix("bilde:")
-                s.startsWith("farge:") -> "color:" + (ColorWallpapers.idFromNorwegian(s.removePrefix("farge:")) ?: "Dusk")
+                s.startsWith("farge:") -> null   // the color wallpapers have been removed
                 else -> s
             }
         }

@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- The wallpaper: your own picture or a color gradient -->
+    <!-- The wallpaper: your own picture (plain black if you haven't added any) -->
     <ImageView
         android:id="@+id/wallpaper"
         android:layout_width="match_parent"

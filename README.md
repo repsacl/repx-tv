@@ -11,9 +11,10 @@ Google's own home screen is heavy on recommendations and ads and gets slow on de
 - **Your apps in a dock** – a single row that scrolls sideways, with an optional rounded background. Hold **OK** on an app to move it, remove it or open app info.
 - **Glass row** – All apps, Play Store, Wallpaper, Settings and Add app, with simple line icons.
 - **Big clock and date** – choose any font, and optionally a **frosted glass** look where the wallpaper shows through the digits.
-- **Your own wallpapers** – drop pictures into `assets/wallpapers/`, or pick one of 14 color gradients.
+- **Your own wallpapers** – drop pictures into `assets/wallpapers/` (plain black if there are none).
 - **Animated focus outline** – Running light, Glow, Pulsing, Solid or Off, drawn just outside the card so it's visible on white banners too.
 - **Screensaver** – a slideshow of your pictures with crossfade, slow zoom and the clock.
+- **Now playing from Spotify** – what you're listening to on any of your devices, with album art and progress, on the home screen and the screensaver.
 - **Quick icons** – Bluetooth (Remotes & Accessories), Wi-Fi and TV settings in the top right corner.
 - **Settings on the TV** – card size, row backgrounds, outline style and distance, fonts, clock style and screensaver, all previewed live as you scroll.
 - **English and Norwegian** – follows the TV's language. Add a `values-xx/strings.xml` to translate.
@@ -70,7 +71,6 @@ When everything works you can turn wireless debugging off; turn it back on when 
 |---|---|
 | Your own wallpapers | `app/src/main/assets/wallpapers/` (.jpg, .png, .webp) – also used by the screensaver |
 | Your own fonts | `app/src/main/assets/fonts/` (.ttf, .otf) – show up in the font lists |
-| Color wallpapers | `ColorWallpapers.kt` |
 | Line icons | `LineIcon.kt` |
 | Translations | `app/src/main/res/values-xx/strings.xml` |
 
@@ -80,7 +80,29 @@ Your own pictures and fonts are ignored by git (see `.gitignore`), so they stay 
 
 Settings → **Screensaver** → **Use my pictures as screensaver: On**. Use **Preview** to see it right away.
 
+**Turn off TV after** sets how long the screensaver runs before the Chromecast goes to sleep. With HDMI-CEC on (TV settings → Display & Sound → HDMI-CEC), the TV turns off with it.
+
+Under Settings → **Wallpaper → Change picture** the home screen can switch to a random picture from your wallpapers every few minutes or hours, like the screensaver, or keep the same one.
+
 Google TV may keep its own Ambient mode. If the preview works but the TV still shows Google's screensaver, turn off Ambient mode (or run `tools/debloat.sh`, which turns it off).
+
+## Spotify «now playing»
+
+Shows what you're playing on Spotify – on your phone, computer or the TV – in the top right corner of the home screen and the bottom right of the screensaver. It only appears while music is playing.
+
+1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard), log in and **Create app**:
+   - Redirect URI: `http://127.0.0.1:8888/callback`
+   - API: **Web API**
+2. Copy the app's **Client ID**.
+3. With the TV connected over adb, run on your computer:
+   ```
+   python3 tools/spotify-login.py --client-id <CLIENT_ID> --device <TV-IP>:<PORT>
+   ```
+   Log in to Spotify in the browser window that opens. The script sends the login to the TV.
+
+The login is stored only on the TV, never in this project, and only adb can deliver it. Turn it on or off, or disconnect, under Settings → **Spotify**.
+
+Spotify apps in development mode only work for a few allowed accounts. If the login says your account isn't allowed, add your Spotify e-mail under **User Management** in the app's dashboard.
 
 ## Optional: free up memory
 
@@ -96,14 +118,14 @@ app/src/main/java/no/repsac/launcher/
   FocusOutline.kt     the animated outline around the focused card
   GlassText.kt        the frosted glass clock
   Screensaver.kt      the screensaver (Android «Dream») and its preview
-  Images.kt           wallpapers: loading, gradients, blur
+  Spotify.kt          «now playing» from Spotify: login receiver, polling and the card
+  Images.kt           wallpapers: loading and blur
   Fonts.kt            the font list
-  ColorWallpapers.kt  the color gradients
   LineIcon.kt         line icons drawn in code
   DateTime.kt         clock and date in the TV's language
 set-as-home.sh        make it the home screen
 restore-home.sh       bring Google's home screen back
-tools/                optional debloat scripts
+tools/                Spotify login and optional debloat scripts
 ```
 
 ## Notes
@@ -114,7 +136,7 @@ tools/                optional debloat scripts
 
 ## Credits
 
-The design, color wallpapers and line icons are based on [TV Detox](https://github.com/ansub/tv-detox) by Ansub Khan (MIT license).
+The design and line icons are based on [TV Detox](https://github.com/ansub/tv-detox) by Ansub Khan (MIT license).
 
 ## License
 
